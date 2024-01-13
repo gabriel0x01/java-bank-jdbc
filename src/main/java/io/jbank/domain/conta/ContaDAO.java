@@ -22,7 +22,7 @@ public class ContaDAO {
     public void abrir(DadosAberturaConta dadosDaConta) {
 
         var cliente = new Cliente(dadosDaConta.dadosCliente());
-        var conta = new Conta(dadosDaConta.numero(), cliente);
+        var conta = new Conta(dadosDaConta.numero(), BigDecimal.ZERO, cliente);
 
         String sql = "INSERT INTO conta (numero, saldo, cliente_nome, cliente_cpf, cliente_email) VALUES (?, ?, ?, ?, ?)";
 
@@ -69,7 +69,7 @@ public class ContaDAO {
 
                 // também poderia pegar pelo índice da coluna, ou utilizar o tipo de dado exato.
                 var numero = resultSet.getInt("numero");
-                // var saldo = resultSet.getBigDecimal("saldo");
+                var saldo = resultSet.getBigDecimal("saldo");
                 var nome = resultSet.getString("cliente_nome");
                 var cpf = resultSet.getString("cliente_cpf");
                 var email = resultSet.getString("cliente_email");
@@ -78,7 +78,7 @@ public class ContaDAO {
 
                 var cliente = new Cliente(dadosCadastroCliente);
 
-                contas.add(new Conta(numero, cliente));
+                contas.add(new Conta(numero, saldo, cliente));
             }
 
             resultSet.close();
@@ -112,7 +112,7 @@ public class ContaDAO {
 
             while (resultSet.next()) {
                 Integer numeroRecuperado = resultSet.getInt(1);
-                // BigDecimal saldo = resultSet.getBigDecimal(2);
+                BigDecimal saldo = resultSet.getBigDecimal(2);
                 String nome = resultSet.getString(3);
                 String cpf = resultSet.getString(4);
                 String email = resultSet.getString(5);
@@ -120,7 +120,7 @@ public class ContaDAO {
                 DadosCadastroCliente dadosCadastroCliente = new DadosCadastroCliente(nome, cpf, email);
                 Cliente cliente = new Cliente(dadosCadastroCliente);
 
-                conta = new Conta(numeroRecuperado, cliente);
+                conta = new Conta(numeroRecuperado, saldo, cliente);
             }
             resultSet.close();
             preparedStatement.close();
@@ -139,4 +139,34 @@ public class ContaDAO {
 
     }
 
+    public void alterar(Integer numero, BigDecimal valor) {
+        String sql = "UPDATE conta SET saldo = ? WHERE numero = ?";
+
+        try {
+            connection.setAutoCommit(false);
+
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            preparedStatement.setBigDecimal(1, valor);
+            preparedStatement.setInt(2, numero);
+
+            preparedStatement.execute();
+            connection.commit();
+            preparedStatement.close();
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

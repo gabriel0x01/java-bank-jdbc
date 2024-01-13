@@ -13,7 +13,7 @@ public class JBankApplication {
 
     public static void main(String[] args) {
         var opcao = exibirMenu();
-        while (opcao != 7) {
+        while (opcao != 8) {
             try {
                 switch (opcao) {
                     case 1:
@@ -33,6 +33,9 @@ public class JBankApplication {
                         break;
                     case 6:
                         realizarDeposito();
+                        break;
+                    case 7:
+                        realizarTransferencia();
                         break;
                 }
             } catch (RegraDeNegocioException e) {
@@ -55,7 +58,8 @@ public class JBankApplication {
                 4 - Consultar saldo de uma conta
                 5 - Realizar saque em uma conta
                 6 - Realizar depósito em uma conta
-                7 - Sair
+                7 - Realizar Transferência entre contas
+                8 - Sair
                 """);
         return teclado.nextInt();
     }
@@ -135,5 +139,23 @@ public class JBankApplication {
         System.out.println("Depósito realizado com sucesso!");
         System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
         teclado.next();
+    }
+
+    private static void realizarTransferencia() {
+        System.out.println("Digite o número da conta de origem:");
+        var numeroContaOrigem = teclado.nextInt();
+
+        System.out.println("Digite o número da conta de destino:");
+        var numeroContaDestino = teclado.nextInt();
+
+        System.out.println("Digite o valor da transferência:");
+        var valor = teclado.nextBigDecimal();
+
+        service.realizarTransferencia(numeroContaOrigem, numeroContaDestino, valor);
+
+        System.out.println("Transferência realizada com sucesso!");
+        System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
+        teclado.next();
+
     }
 }

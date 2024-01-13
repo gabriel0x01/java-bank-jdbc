@@ -23,8 +23,8 @@ public class ConnectionFactory {
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://aws.connect.psdb.cloud/jbank?sslMode=VERIFY_IDENTITY");
-        config.setUsername("6np3l6z4ef98xva123s6");
-        config.setPassword("pscale_pw_LrZIf95JyYwEdJV8cUauAz6Id9S0iQNAK5CjmDCF0Xf");
+        config.setUsername("3d6fp2mzezmhjzalqke3");
+        config.setPassword("pscale_pw_M7h1N9iSYHci4QLF31NPI2ieyqlzohZ2XxFUCxmBSA2");
         config.setMaximumPoolSize(10);
 
         return new HikariDataSource(config);
