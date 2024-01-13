@@ -48,7 +48,7 @@ public class JBankApplication {
 
     private static int exibirMenu() {
         System.out.println("""
-                BYTEBANK - ESCOLHA UMA OPÇÃO:
+                JBANK - ESCOLHA UMA OPÇÃO:
                 1 - Listar contas abertas
                 2 - Abertura de conta
                 3 - Encerramento de conta

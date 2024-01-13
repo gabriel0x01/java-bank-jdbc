@@ -1,17 +1,25 @@
 package io.jbank.domain.conta;
 
-import io.jbank.domain.cliente.Cliente;
+import io.jbank.utils.ConnectionFactory;
 import io.jbank.domain.RegraDeNegocioException;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.util.HashSet;
 import java.util.Set;
 
 public class ContaService {
 
+    private ConnectionFactory connection;
+
+    public ContaService() {
+        this.connection = new ConnectionFactory();
+    }
+
     private Set<Conta> contas = new HashSet<>();
 
     public Set<Conta> listarContasAbertas() {
-        return contas;
+        Connection conn = connection.abrirConexao();
+        return new ContaDAO(conn).listar();
     }
 
     public BigDecimal consultarSaldo(Integer numeroDaConta) {
@@ -20,13 +28,8 @@ public class ContaService {
     }
 
     public void abrir(DadosAberturaConta dadosDaConta) {
-        var cliente = new Cliente(dadosDaConta.dadosCliente());
-        var conta = new Conta(dadosDaConta.numero(), cliente);
-        if (contas.contains(conta)) {
-            throw new RegraDeNegocioException("Já existe outra conta aberta com o mesmo número!");
-        }
-
-        contas.add(conta);
+        Connection conn = connection.abrirConexao();
+        new ContaDAO(conn).abrir(dadosDaConta);
     }
 
     public void realizarSaque(Integer numeroDaConta, BigDecimal valor) {
@@ -61,10 +64,12 @@ public class ContaService {
     }
 
     private Conta buscarContaPorNumero(Integer numero) {
-        return contas
-                .stream()
-                .filter(c -> c.getNumero() == numero)
-                .findFirst()
-                .orElseThrow(() -> new RegraDeNegocioException("Não existe conta cadastrada com esse número!"));
+        Connection conn = connection.abrirConexao();
+        Conta conta = new ContaDAO(conn).listarPorNumero(numero);
+        if (conta != null) {
+            return conta;
+        } else {
+            throw new RegraDeNegocioException("Não existe conta cadastrada com esse número!");
+        }
     }
 }
