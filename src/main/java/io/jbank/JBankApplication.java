@@ -13,7 +13,7 @@ public class JBankApplication {
 
     public static void main(String[] args) {
         var opcao = exibirMenu();
-        while (opcao != 8) {
+        while (opcao != 10) {
             try {
                 switch (opcao) {
                     case 1:
@@ -23,7 +23,7 @@ public class JBankApplication {
                         abrirConta();
                         break;
                     case 3:
-                        encerrarConta();
+                        deletarConta();
                         break;
                     case 4:
                         consultarSaldo();
@@ -36,6 +36,12 @@ public class JBankApplication {
                         break;
                     case 7:
                         realizarTransferencia();
+                        break;
+                    case 8:
+                        encerrarConta();
+                        break;
+                    case 9:
+                        listarInativas();
                         break;
                 }
             } catch (RegraDeNegocioException e) {
@@ -54,12 +60,14 @@ public class JBankApplication {
                 JBANK - ESCOLHA UMA OPÇÃO:
                 1 - Listar contas abertas
                 2 - Abertura de conta
-                3 - Encerramento de conta
+                3 - Exclusão de conta
                 4 - Consultar saldo de uma conta
                 5 - Realizar saque em uma conta
                 6 - Realizar depósito em uma conta
                 7 - Realizar Transferência entre contas
-                8 - Sair
+                8 - Encerrar conta
+                9 - Listar contas inativas
+                10 - SAIR
                 """);
         return teclado.nextInt();
     }
@@ -93,13 +101,13 @@ public class JBankApplication {
         teclado.next();
     }
 
-    private static void encerrarConta() {
+    private static void deletarConta() {
         System.out.println("Digite o número da conta:");
         var numeroDaConta = teclado.nextInt();
 
-        service.encerrar(numeroDaConta);
+        service.deletar(numeroDaConta);
 
-        System.out.println("Conta encerrada com sucesso!");
+        System.out.println("Conta excluida com sucesso!");
         System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
         teclado.next();
     }
@@ -157,5 +165,24 @@ public class JBankApplication {
         System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
         teclado.next();
 
+    }
+
+    public static void encerrarConta() {
+        System.out.println("Digite o número da conta:");
+        var numeroDaConta = teclado.nextInt();
+
+        service.encerrar(numeroDaConta);
+        System.out.println("Conta encerrada com sucesso!");
+        System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
+        teclado.next();
+    }
+
+    private static void listarInativas() {
+        System.out.println("Contas Inativas:");
+        var contas = service.listarContasInativas();
+        contas.stream().forEach(System.out::println);
+
+        System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
+        teclado.next();
     }
 }

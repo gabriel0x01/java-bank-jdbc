@@ -22,9 +22,9 @@ public class ContaDAO {
     public void abrir(DadosAberturaConta dadosDaConta) {
 
         var cliente = new Cliente(dadosDaConta.dadosCliente());
-        var conta = new Conta(dadosDaConta.numero(), BigDecimal.ZERO, cliente);
+        var conta = new Conta(dadosDaConta.numero(), BigDecimal.ZERO, cliente, true);
 
-        String sql = "INSERT INTO conta (numero, saldo, cliente_nome, cliente_cpf, cliente_email) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO conta (numero, saldo, cliente_nome, cliente_cpf, cliente_email, ativa) VALUES (?, ?, ?, ?, ?, ?)";
 
         try {
 
@@ -35,6 +35,7 @@ public class ContaDAO {
             preparedStatement.setString(3, conta.getTitular().getNome());
             preparedStatement.setString(4, conta.getTitular().getCpf());
             preparedStatement.setString(5, conta.getTitular().getEmail());
+            preparedStatement.setBoolean(6, true);
 
             preparedStatement.execute();
             preparedStatement.close();
@@ -59,7 +60,7 @@ public class ContaDAO {
 
         try {
 
-            String sql = "SELECT * FROM conta";
+            String sql = "SELECT * FROM conta WHERE ativa = true";
 
             preparedStatement = connection.prepareStatement(sql);
 
@@ -73,12 +74,13 @@ public class ContaDAO {
                 var nome = resultSet.getString("cliente_nome");
                 var cpf = resultSet.getString("cliente_cpf");
                 var email = resultSet.getString("cliente_email");
+                var ativa = resultSet.getBoolean("ativa");
 
                 DadosCadastroCliente dadosCadastroCliente = new DadosCadastroCliente(nome, cpf, email);
 
                 var cliente = new Cliente(dadosCadastroCliente);
 
-                contas.add(new Conta(numero, saldo, cliente));
+                contas.add(new Conta(numero, saldo, cliente, ativa));
             }
 
             resultSet.close();
@@ -99,7 +101,7 @@ public class ContaDAO {
     }
 
     public Conta listarPorNumero(Integer numero) {
-        String sql = "SELECT * FROM conta WHERE numero = ?";
+        String sql = "SELECT * FROM conta WHERE numero = ? AND ativa = true";
 
         PreparedStatement preparedStatement;
         ResultSet resultSet;
@@ -116,11 +118,12 @@ public class ContaDAO {
                 String nome = resultSet.getString(3);
                 String cpf = resultSet.getString(4);
                 String email = resultSet.getString(5);
+                Boolean ativa = resultSet.getBoolean(6);
 
                 DadosCadastroCliente dadosCadastroCliente = new DadosCadastroCliente(nome, cpf, email);
                 Cliente cliente = new Cliente(dadosCadastroCliente);
 
-                conta = new Conta(numeroRecuperado, saldo, cliente);
+                conta = new Conta(numeroRecuperado, saldo, cliente, ativa);
             }
             resultSet.close();
             preparedStatement.close();
@@ -136,6 +139,54 @@ public class ContaDAO {
         }
 
         return conta;
+
+    }
+
+    public Set<Conta> listarInativas() {
+
+        PreparedStatement preparedStatement;
+        ResultSet resultSet;
+
+        Set<Conta> contas = new HashSet<>();
+
+        try {
+
+            String sql = "SELECT * FROM conta WHERE ativa = false";
+
+            preparedStatement = connection.prepareStatement(sql);
+
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+
+                var numero = resultSet.getInt("numero");
+                var saldo = resultSet.getBigDecimal("saldo");
+                var nome = resultSet.getString("cliente_nome");
+                var cpf = resultSet.getString("cliente_cpf");
+                var email = resultSet.getString("cliente_email");
+                var ativa = resultSet.getBoolean("ativa");
+
+                DadosCadastroCliente dadosCadastroCliente = new DadosCadastroCliente(nome, cpf, email);
+
+                var cliente = new Cliente(dadosCadastroCliente);
+
+                contas.add(new Conta(numero, saldo, cliente, ativa));
+            }
+
+            resultSet.close();
+            preparedStatement.close();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return contas;
 
     }
 
@@ -169,4 +220,66 @@ public class ContaDAO {
             }
         }
     }
+
+    public void deletar(Integer numeroDaConta) {
+        String sql = "DELETE FROM conta WHERE numero = ?";
+
+        try {
+            connection.setAutoCommit(false);
+
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            preparedStatement.setInt(1, numeroDaConta);
+
+            preparedStatement.execute();
+            connection.commit();
+            preparedStatement.close();
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+
+    public void encerrar(Integer numeroDaConta) {
+        String sql = "UPDATE conta SET ativa = false WHERE numero = ?";
+
+        try {
+            connection.setAutoCommit(false);
+
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            preparedStatement.setInt(1, numeroDaConta);
+
+            preparedStatement.execute();
+            connection.commit();
+            preparedStatement.close();
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
 }
